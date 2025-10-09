@@ -4,7 +4,8 @@ using System.IO;
 enum GameState
 {
     Start,
-    End
+    End,
+    Pause
 }
 
 class Game
@@ -17,6 +18,7 @@ class Game
     public Player mouse;
     public GameState state;
     private int? caughtLocation = null;
+    private int K = 0;
 
     public Game(int size)
     {
@@ -28,6 +30,9 @@ class Game
 
     private void DoMoveCommand(char command, int steps)
     {
+        if (state == GameState.Pause)
+            return;
+
         Player player = (command == 'C') ? cat : mouse;
 
         if (player.state == State.NotInGame)
@@ -57,6 +62,8 @@ class Game
             state = GameState.End;
             caughtLocation = cat.location;
         }
+       
+        
     }
 
     private void DoPrintCommand(StreamWriter writer)
@@ -106,6 +113,23 @@ class Game
         }
     }
 
+    private void TogglePause(StreamWriter writer)
+    {
+        K++;
+
+        if (K % 2 == 1)
+        {
+            state = GameState.Pause;
+            WriteLine("=== GAME PAUSED ===", writer);
+        }
+        else
+        {
+            state = GameState.Start;
+            WriteLine("=== GAME RESUMED ===", writer);
+        }
+    }
+
+
     private void WriteLine(string message, StreamWriter writer)
     {
         Console.WriteLine(message);
@@ -153,6 +177,17 @@ class Game
 
                 DoPrintCommand(writer);
             }
+
+            if (command == 'K')
+            {
+                TogglePause(writer);
+                continue; 
+            }
+
+            // Если игра на паузе — ждем возобновления
+            if (state == GameState.Pause)
+                continue;
+
         }
 
         WriteLine("-------------------", writer);
